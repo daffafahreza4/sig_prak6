@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Spatial Data Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <style>
+        #map {
+            height: 600px;
+            width: 100%;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Spatial Data</h1>
+    <div id="map"></div>
+
+    <script>
+        var map = L.map('map').setView([51.49515148160606, -0.03623900107556069], 8);
+
+        var osmLayer = L.tileLayer(
+            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            maxZoom: 19,
+        });
+
+        var rasterLayer = L.tileLayer("../static/tiles/{z}/{x}/{y}.png", {
+            tms: 1,
+            opacity: 0.7,
+            attribution: "Raster Data from raster_data Table",
+            minZoom: 8,
+            maxZoom: 12
+        });
+
+        var baseMaps = {
+            "Open Street Map": osmLayer,
+            "Raster Layer": rasterLayer
+        };
+
+        osmLayer.addTo(map);
+
+        L.control.layers(baseMaps).addTo(map);
+
+        var points = {{ geo_points | tojson }};
+        L.geoJSON(points, {
+            onEachFeature: function (feature, layer) {
+                if (feature.properties && feature.properties.name) {
+                    layer.bindPopup(feature.properties.name);
+                }
+            }
+        }).addTo(map);
+
+        var lines = {{ geo_lines | tojson }};
+        L.geoJSON(lines, {
+            style: { color: 'blue', weight: 4 },
+            onEachFeature: function (feature, layer) {
+                if (feature.properties && feature.properties.name) {
+                    layer.bindPopup(feature.properties.name);
+                }
+            }
+        }).addTo(map);
+
+        var polygons = {{ geo_polygons | tojson }};
+        L.geoJSON(polygons, {
+            style: { color: 'green', weight: 2, fillOpacity: 0.5 },
+            onEachFeature: function (feature, layer) {
+                if (feature.properties && feature.properties.name) {
+                    layer.bindPopup(feature.properties.name);
+                }
+            }
+        }).addTo(map);
+    </script>
+</body>
+
+</html>
